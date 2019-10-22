@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <title>OL - basic map</title>
+
+    <!-- OpenLayers - Compiled and minified CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.0.1/css/ol.css" type="text/css">
+    
+    <!-- OpenLayers - Compiled and minified JavaScript -->
+    <script src="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.0.1/build/ol.js"></script>
+
+    <!-- Materialize - Compiled and minified CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+
+    <!-- Compiled and minified jQuery -->
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+
+    <!-- Materialize - Compiled and minified JavaScript -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>    
+    
+    <style>
+      .map {
+        height: calc(100vh - 64px);
+        width: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <nav class="blue darken-2">
+        <div class="nav-wrapper">
+          <a href="#" class="brand-logo">&nbsp;&nbsp;&nbsp;Title</a>
+          <ul id="nav-mobile" class="right hide-on-med-and-down">
+            <li><a href="sass.html">Sass</a></li>
+            <li><a href="badges.html">Components</a></li>
+            <li><a href="collapsible.html">JavaScript</a></li>
+            <li><a class="waves-effect waves-light btn modal-trigger" href="#modal1">Open Modal</a></li>
+          </ul>
+        </div>
+    </nav>
+    <div id="map" class="map"></div>
+
+    <!-- Modal Structure -->
+    <div id="modal1" class="modal bottom-sheet">
+      <div class="modal-content">
+        <h4>Modal Header</h4>
+        <ul class="collection">
+          <li class="collection-item avatar">
+            <img src="images/yuna.jpg" alt="" class="circle">
+            <span class="title">Title</span>
+            <p>First Line
+              <br> Second Line
+            </p>
+            <a href="#!" class="secondary-content">
+              <i class="material-icons">grade</i>
+            </a>
+          </li>
+          <li class="collection-item avatar">
+            <i class="material-icons circle">folder</i>
+            <span class="title">Title</span>
+            <p>First Line
+              <br> Second Line
+            </p>
+            <a href="#!" class="secondary-content">
+              <i class="material-icons">grade</i>
+            </a>
+          </li>
+          <li class="collection-item avatar">
+            <i class="material-icons circle green">assessment</i>
+            <span class="title">Title</span>
+            <p>First Line
+              <br> Second Line
+            </p>
+            <a href="#!" class="secondary-content">
+              <i class="material-icons">grade</i>
+            </a>
+          </li>
+          <li class="collection-item avatar">
+            <i class="material-icons circle red">play_arrow</i>
+            <span class="title">Title</span>
+            <p>First Line
+              <br> Second Line
+            </p>
+            <a href="#!" class="secondary-content">
+              <i class="material-icons">grade</i>
+            </a>
+          </li>
+        </ul>
+      </div>
+      <div class="modal-footer">
+        <a href="#!" class="modal-close waves-effect waves-green btn-flat">Agree</a>
+      </div>
+    </div>
+
+    <script type="text/javascript">
+
+      var wmsSource = new ol.source.TileWMS({
+        url: 'https://dev.li-st.net/geoserver/crogis_hvar/wms',
+        params: {'LAYERS': 'crogis_hvar:aspect', 'TILED': false},
+        serverType: 'geoserver',
+        crossOrigin: 'anonymous'
+      });
+
+      var wmsLayer = new ol.layer.Tile({
+        source: wmsSource
+      });
+
+      var layers = [
+        new ol.layer.Tile({
+          source: new ol.source.OSM()
+        }),
+        wmsLayer
+      ];
+
+      var view = new ol.View({
+        center: [0, 0],
+        zoom: 1
+      });
+      
+      var map = new ol.Map({
+        target: 'map',
+        layers: layers,
+        view: view
+      });
+
+      // onclick event
+      map.on('singleclick', function(evt) {
+        //document.getElementById('info').innerHTML = '';
+        var viewResolution = /** @type {number} */ (view.getResolution());
+        var url = wmsSource.getFeatureInfoUrl(
+          evt.coordinate, viewResolution, 'EPSG:3857',
+          {'INFO_FORMAT': 'application/json'});
+        if (url) {
+          fetch(url)
+            .then(function (response) { return response.text(); })
+            .then(function (html) {
+              //document.getElementById('info').innerHTML = html;
+              // Do something...
+              console.log(html);
+            });
+        }
+      });
+
+      // cursor change
+      map.on('pointermove', function(evt) {
+        if (evt.dragging) {
+          return;
+        }
+        var pixel = map.getEventPixel(evt.originalEvent);
+        var hit = map.forEachLayerAtPixel(pixel, function() {
+          return true;
+        });
+        map.getTargetElement().style.cursor = hit ? 'pointer' : '';
+      });
+
+      // Open modal
+      $(document).ready(function(){
+        $('#modal1').modal();
+        $('#modal1').modal('open');
+      });
+    </script>
+  </body>
+</html>
